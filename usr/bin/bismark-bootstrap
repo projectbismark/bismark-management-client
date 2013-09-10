@@ -34,7 +34,7 @@ fi
 rm /tmp/bismark-crontab
 /etc/init.d/cron restart
 
-rm -f /www/index.html /www/index.htm
+[ -e /www/index.html -a -e /www/index.htm ] && rm -f /www/index.html
 
 DEVID=$(cat /etc/bismark/ID)
 if ! grep -q $DEVID /etc/opkg.conf; then
