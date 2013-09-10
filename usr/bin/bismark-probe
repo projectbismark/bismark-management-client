@@ -1,0 +1,84 @@
+#!/bin/ash
+# Send UDP probes to Bismark server and
+# call action script depending on the answer
+# Provides:
+# - device heartbeat
+# - UDP proxy fallback
+#
+# author: walter.dedonato@unina.it
+
+# Load configuration file
+. /etc/bismark/bismark.conf
+. /usr/lib/bismark/functions.inc.sh
+
+# Local config
+MAX_SLEEP=30
+
+# Probe message generator
+msg () {
+	echo "$DEVICE_ID ping $VERSION"
+	sleep 1
+	return 0
+}
+
+# Create status files
+[ -e /tmp/bismark/var/faults ] || echo 0 > /tmp/bismark/var/faults
+[ -e /tmp/bismark/var/proxy ] || echo 0 > /tmp/bismark/var/proxy
+[ -e /tmp/bismark/var/port_counter ] || echo 0 > /tmp/bismark/var/port_counter
+
+# Check faults count
+read faults < /tmp/bismark/var/faults
+if [ $faults -ge 20 ]; then
+	read proxy < /tmp/bismark/var/proxy
+	echo $(( (proxy + 1) % 2 )) > /tmp/bismark/var/proxy
+	echo 0 > /tmp/bismark/var/faults
+	faults=0
+fi
+
+# Random delay wait
+sleep $(random 0 $MAX_SLEEP)
+
+# Select probe port
+if [ ! -e /tmp/bismark/var/port_counter ] || [ ! `cat /tmp/bismark/var/port_counter` ]; then
+	ports=$(echo $PROBE_PORTS | awk '{print NF}')
+	port_counter=$(random 0 $ports) 
+	echo 0 > /tmp/bismark/var/port_counter
+else
+	read port_counter < /tmp/bismark/var/port_counter
+fi
+PROBE_PORT=$(echo $PROBE_PORTS | awk '{print $'$((port_counter + 1))'}')
+
+# Send probe and store reply
+if [ $(cat /tmp/bismark/var/proxy) -eq 1 ]; then
+	repstr=`msg | nc -u $NC_OPTS $PROXY $PROXY_PORT`
+else
+	repstr=`msg | nc -u $NC_OPTS $SERVER $PROBE_PORT`
+fi
+
+# Faults control 
+if [ "$repstr" ]; then
+	# Reset faults count
+	echo 0 > /tmp/bismark/var/faults
+	#event uplink up
+else
+	# Update faults count
+	echo $((++faults)) > /tmp/bismark/var/faults
+
+	# Cycle server port
+	ports=$(echo $PROBE_PORTS | awk '{print NF}')
+	nport=$(( (port_counter + 1) % ports )) 
+	echo $nport > /tmp/bismark/var/port_counter
+	echo NPORT $nport
+	if [ ! -e /tmp/bismark/var/port_counter ] || [ ! `cat /tmp/bismark/var/port_counter` ] || [ $nport -ne `cat /tmp/bismark/var/port_counter` ]; then
+		rm -f /tmp/bismark/var/port_counter
+	fi
+fi
+
+# Parse reply
+#read cmd value < /tmp/bismark/var/reply
+cmd=`echo $repstr | cut -d" " -f1`
+value=`echo $repstr | cut -d" " -f2-`
+echo $repstr > /tmp/bismark/var/reply
+
+[ $cmd ] && REMOTE=on bismark-action $cmd $value
+

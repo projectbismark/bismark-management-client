@@ -1,0 +1,8 @@
+#!/bin/sh /etc/rc.common
+
+START=90
+STOP=1
+
+boot() {
+    bismark-bootstrap
+}
