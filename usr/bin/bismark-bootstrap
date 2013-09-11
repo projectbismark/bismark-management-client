@@ -21,13 +21,7 @@ if [ ! -e /etc/bismark/ID ]; then
 fi
 
 # Cronjobs setup
-local active_crontab
-if [ -e /etc/bismark/crontab-active ]; then
-    active_crontab=/etc/bismark/crontab-active
-elif [ -e /tmp/etc/bismark/crontab-active-tmpfs ]; then
-    active_crontab=/tmp/etc/bismark/crontab-active-tmpfs
-fi
-sort -u /etc/crontabs/root /etc/bismark/crontab $active_crontab > /tmp/bismark-crontab
+sort -u /etc/crontabs/root /etc/bismark/crontab > /tmp/bismark-crontab
 if ! cmp -s /etc/crontabs/root /tmp/bismark-crontab; then
     crontab /tmp/bismark-crontab
 fi
@@ -44,7 +38,6 @@ fi
 
 # Conf changes
 bismark-action mgmtconfupdate
-bismark-action scriptupdate
 
 # start bismark-sshd
 /usr/bin/bismark-sshd
