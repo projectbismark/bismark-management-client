@@ -4,5 +4,6 @@ START=90
 STOP=1
 
 boot() {
-    bismark-bootstrap
+	crontab -l | grep -vi "# remove on reboot" | crontab -
+	bismark-bootstrap
 }
