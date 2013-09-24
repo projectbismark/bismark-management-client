@@ -85,7 +85,7 @@ acquire_active_measurements_lock ()
 
 # Atomically release the measurement lock.
 # Returns: 0 if successful, nonzero if lock was already released.
-release_active_measurments_lock ()
+release_active_measurements_lock ()
 {
 	busybox rm $ACTIVE_MEASUREMENTS_LOCK_FILE
 }
