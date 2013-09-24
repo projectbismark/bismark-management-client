@@ -19,13 +19,7 @@
 # Perform the requested action
 case $1 in
 fwd)    # on-demand SSH tunnel
-    if [ $2 == ${2#*:} ]; then
-        # Default to local port $MGMT_SSHD_PORT
-        ( ssh -y $KEEP_ALIVE -N -i $SSH_KEY -R $2:127.0.0.1:$MGMT_SSHD_PORT $USER@$SERVER >/dev/null 2>&1 & )
-    else
-        # To custom IP:PORT destination
-        ( ssh -y $KEEP_ALIVE -N -i $SSH_KEY -R $2 $USER@$SERVER >/dev/null 2>&1 & )
-    fi
+    ( ssh -y $KEEP_ALIVE -N -i $SSH_KEY -R $2:127.0.0.1:$MGMT_SSHD_PORT $USER@$SERVER >/dev/null 2>&1 & )
 ;;
 pong)    # Server heartbeat
     date +%s > /tmp/bismark/var/server_last
