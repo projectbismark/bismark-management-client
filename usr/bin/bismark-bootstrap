@@ -45,3 +45,7 @@ bismark-action mgmtconfupdate
 # don't run netserver on boot
 /etc/init.d/netserver stop
 /etc/init.d/netserver disable
+
+# don't run nodogsplash on boot
+/etc/init.d/nodogsplash stop
+/etc/init.d/nodogsplash disable
