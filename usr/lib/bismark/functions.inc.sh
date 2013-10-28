@@ -120,7 +120,7 @@ expire_active_measurements_lock ()
 	# and subquently acquired by someone else, who shouldn't be expired or
 	# released at this time. The chance of this happening is very low,
 	# but you never know...
-	if ! release_active_measurments_lock; then
+	if ! release_active_measurements_lock; then
 		return 0
 	fi
 	for process in $processes_to_kill; do
