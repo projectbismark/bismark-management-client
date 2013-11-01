@@ -12,8 +12,26 @@
 mkdir -p /tmp/bismark/var
 
 # Set the device identifier
+
 if [ ! -e /etc/bismark/ID ]; then
-    lanmac=0x$(ifconfig $LAN_IF | awk '/HWaddr / { gsub(":","", $5); print $5 }')
+    if [ -e /lib/ar71xx.sh ]; then
+        . /lib/ar71xx.sh
+        board=$(ar71xx_board_name)
+        case $board in 
+        wndr3*00*)
+            macif=$LAN_IF
+            ;;
+        tl-wdr*)
+            macif=wlan1
+            ;;
+        *)
+            macif=$LAN_IF
+	    ;; 
+        esac
+    else
+        macif=$LAN_IF
+    fi
+    lanmac=0x$(ifconfig $macif | awk '/HWaddr / { gsub(":","", $5); print $5 }')
     printf "OW%X\n" $((lanmac & 0xFDFFFFFFFFFF)) > /etc/bismark/ID
     uci set system.@system[0].hostname=$(cat /etc/bismark/ID)
     uci commit system
