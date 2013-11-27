@@ -38,13 +38,14 @@ if [ ! -e /etc/bismark/ID ]; then
     cat /etc/bismark/ID > /proc/sys/kernel/hostname
 fi
 
-# Cronjobs setup
-sort -u /etc/crontabs/root /etc/bismark/crontab > /tmp/bismark-crontab
-if ! cmp -s /etc/crontabs/root /tmp/bismark-crontab; then
-    crontab /tmp/bismark-crontab
-fi
-rm /tmp/bismark-crontab
-/etc/init.d/cron restart
+# The following is commented out because cronjobs are now managed by bismark-cron
+## Cronjobs setup
+#sort -u /etc/crontabs/root /etc/bismark/crontab > /tmp/bismark-crontab
+#if ! cmp -s /etc/crontabs/root /tmp/bismark-crontab; then
+#    crontab /tmp/bismark-crontab
+#fi
+#rm /tmp/bismark-crontab
+#/etc/init.d/cron restart
 
 [ -e /www/index.html -a -e /www/index.htm ] && rm -f /www/index.html
 
