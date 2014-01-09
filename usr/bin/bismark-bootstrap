@@ -32,7 +32,7 @@ if [ ! -e /etc/bismark/ID ]; then
         macif=$LAN_IF
     fi
     lanmac=0x$(ifconfig $macif | awk '/HWaddr / { gsub(":","", $5); print $5 }')
-    printf "OW%X\n" $((lanmac & 0xFDFFFFFFFFFF)) > /etc/bismark/ID
+    printf "OW%012X\n" $((lanmac & 0xFDFFFFFFFFFF)) > /etc/bismark/ID
     uci set system.@system[0].hostname=$(cat /etc/bismark/ID)
     uci commit system
     cat /etc/bismark/ID > /proc/sys/kernel/hostname
