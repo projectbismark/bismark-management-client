@@ -9,7 +9,7 @@
 # modified by gmartins@cc.gatech.edu
 
 # Load configuration
-## DEBIAN . /etc/bismark/bismark.conf
+. /etc/bismark/bismark.conf
 
 # Create temporary tree
 mkdir -p /tmp/bismark/var
@@ -23,7 +23,7 @@ if [ ! -e /etc/bismark/ID ]; then
             macif=$(/sbin/route -n | grep "^0.0.0.0" | head -n 1| awk '{ print $ 8}')
             lanmac=0x$(/sbin/ifconfig $macif | awk '/HWaddr / { gsub(":","", $5); print $5 }')
             mkdir -p /etc/bismark/
-            printf "OW%012X\n" $((lanmac & 0xFDFFFFFFFFFF)) > /etc/bismark/ID
+            printf "DL%012X\n" $((lanmac & 0xFDFFFFFFFFFF)) > /etc/bismark/ID
         fi
     else
         if [ -e /lib/ar71xx.sh ]; then
@@ -60,10 +60,14 @@ if [ -f /etc/opkg.conf ]; then
 fi
 
 # Conf changes
-##DEBIAN bismark-action mgmtconfupdate
+if [ -x /usr/bin/bismark-action ]; then
+    /usr/bin/bismark-action mgmtconfupdate
+fi
 
 # start bismark-sshd
-##DEBIAN /usr/bin/bismark-sshd
+if [ -x /usr/bin/bismark-sshd ]; then
+    /usr/bin/bismark-sshd
+fi
 
 # don't run netserver on boot
 if [ -x /etc/init.d/netserver ]; then
