@@ -1,12 +1,15 @@
-#!/bin/ash
+#!/bin/sh
+
+##DEBIAN !/bin/ash
 # Device startup script
 #
 # author walter.dedonato@unina.it
 # modified by srikanth@gatech.edu
 # modified by sburnett@cc.gatech.edu
+# modified by gmartins@cc.gatech.edu
 
 # Load configuration
-. /etc/bismark/bismark.conf
+## DEBIAN . /etc/bismark/bismark.conf
 
 # Create temporary tree
 mkdir -p /tmp/bismark/var
@@ -14,56 +17,59 @@ mkdir -p /tmp/bismark/var
 # Set the device identifier
 
 if [ ! -e /etc/bismark/ID ]; then
-    if [ -e /lib/ar71xx.sh ]; then
-        . /lib/ar71xx.sh
-        board=$(ar71xx_board_name)
-        case $board in 
-        wndr3*00*)
-            macif=$LAN_IF
-            ;;
-        tl-wdr*)
-            macif=wlan1
-            ;;
-        *)
-            macif=$LAN_IF
-	    ;; 
-        esac
+    if [ -f /etc/issue ];then
+        if  grep -q "^Debian" /etc/issue;
+        then
+            macif=$(/sbin/route -n | grep "^0.0.0.0" | head -n 1| awk '{ print $ 8}')
+            lanmac=0x$(/sbin/ifconfig $macif | awk '/HWaddr / { gsub(":","", $5); print $5 }')
+            mkdir -p /etc/bismark/
+            printf "OW%012X\n" $((lanmac & 0xFDFFFFFFFFFF)) > /etc/bismark/ID
+        fi
     else
-        macif=$LAN_IF
+        if [ -e /lib/ar71xx.sh ]; then
+            . /lib/ar71xx.sh
+            board=$(ar71xx_board_name)
+            case $board in 
+            wndr3*00*)
+                macif=$LAN_IF
+                ;;
+            tl-wdr*)
+                macif=wlan1
+                ;;
+            *)
+                macif=$LAN_IF
+            ;; 
+            esac
+        fi
+        lanmac=0x$(ifconfig $macif | awk '/HWaddr / { gsub(":","", $5); print $5 }')
+        printf "OW%012X\n" $((lanmac & 0xFDFFFFFFFFFF)) > /etc/bismark/ID
+        uci set system.@system[0].hostname=$(cat /etc/bismark/ID)
+        uci commit system
+        cat /etc/bismark/ID > /proc/sys/kernel/hostname
     fi
-    lanmac=0x$(ifconfig $macif | awk '/HWaddr / { gsub(":","", $5); print $5 }')
-    printf "OW%012X\n" $((lanmac & 0xFDFFFFFFFFFF)) > /etc/bismark/ID
-    uci set system.@system[0].hostname=$(cat /etc/bismark/ID)
-    uci commit system
-    cat /etc/bismark/ID > /proc/sys/kernel/hostname
 fi
-
-# The following is commented out because cronjobs are now managed by bismark-cron
-## Cronjobs setup
-#sort -u /etc/crontabs/root /etc/bismark/crontab > /tmp/bismark-crontab
-#if ! cmp -s /etc/crontabs/root /tmp/bismark-crontab; then
-#    crontab /tmp/bismark-crontab
-#fi
-#rm /tmp/bismark-crontab
-#/etc/init.d/cron restart
 
 [ -e /www/index.html -a -e /www/index.htm ] && rm -f /www/index.html
 
-DEVID=$(cat /etc/bismark/ID)
-if ! grep -q $DEVID /etc/opkg.conf; then
-    sed -i -e "s!updates-device!updates-device/$DEVID!g" /etc/opkg.conf
-    sed -i -e "s!experiments-device!experiments-device/$DEVID!g" /etc/opkg.conf
+if [ -f /etc/opkg.conf ]; then
+    DEVID=$(cat /etc/bismark/ID)
+    if ! grep -q $DEVID /etc/opkg.conf; then
+        sed -i -e "s!updates-device!updates-device/$DEVID!g" /etc/opkg.conf
+        sed -i -e "s!experiments-device!experiments-device/$DEVID!g" /etc/opkg.conf
+    fi
 fi
 
 # Conf changes
-bismark-action mgmtconfupdate
+##DEBIAN bismark-action mgmtconfupdate
 
 # start bismark-sshd
-/usr/bin/bismark-sshd
+##DEBIAN /usr/bin/bismark-sshd
 
 # don't run netserver on boot
-/etc/init.d/netserver stop
-/etc/init.d/netserver disable
+if [ -x /etc/init.d/netserver ]; then
+    /etc/init.d/netserver stop
+    /etc/init.d/netserver disable
+fi
 
 # don't run nodogsplash on boot
 if [ -x /etc/init.d/nodogsplash ]; then

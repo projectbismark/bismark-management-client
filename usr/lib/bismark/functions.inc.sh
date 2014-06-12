@@ -35,7 +35,7 @@ mod_conf ()
 output ()
 {
         if [ $REMOTE ]; then
-                ( echo "$DEVICE_ID log $1 $(date +%s)" ; cat ) | nc -u $NC_OPTS $SERVER $PROBE_PORT
+                ( echo "$DEVICE_ID log $1 $(date +%s)" ) | nc -u $NC_OPTS $SERVER $PROBE_PORT
         else
                 cat
         fi
@@ -58,7 +58,7 @@ get_ip ()
 	if [ -e /tmp/bismark/var/ip ] && [ $(grep -c '^[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*$' /tmp/bismark/var/ip) -ge 1 ]; then
 		src=$(cat /tmp/bismark/var/ip)
 	else
-		src=$(ifconfig $WAN_IF | awk '/inet addr:/{ print substr($2,6) }')
+		src=$(/sbin/ifconfig $WAN_IF | awk '/inet addr:/{ print substr($2,6) }')
 	fi
 }
 
@@ -66,7 +66,7 @@ get_ip ()
 
 dl_file ()
 {
-	curl -f --output $2 $1
+	curl -k -f --output $2 $1
 	if [ $? -gt 0 ]; then
 		echo -n "" > $2
 	fi
@@ -87,7 +87,8 @@ acquire_active_measurements_lock ()
 # Returns: 0 if successful, nonzero if lock was already released.
 release_active_measurements_lock ()
 {
-	busybox rm $ACTIVE_MEASUREMENTS_LOCK_FILE
+	echo $ACTIVE_MEASUREMENTS_LOCK_FILE
+	busybox rm -f $ACTIVE_MEASUREMENTS_LOCK_FILE
 }
 
 # Print the timestamp when the active measurements lock was last acquired.
