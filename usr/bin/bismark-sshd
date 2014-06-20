@@ -1,4 +1,4 @@
-#!/bin/ash
+#!/bin/sh
 
 # Import configuration and functions
 . /etc/bismark/bismark.conf

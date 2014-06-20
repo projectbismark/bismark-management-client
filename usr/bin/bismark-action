@@ -1,4 +1,4 @@
-#!/bin/ash
+#!/bin/sh
 # Device actions script
 # Provides:
 # - on-demand SSH tunnel
