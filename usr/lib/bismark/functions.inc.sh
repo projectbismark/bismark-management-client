@@ -1,4 +1,4 @@
-#!/bin/ash
+#!/bin/sh
 # Ausiliary functions library
 #
 # author: walter.dedonato@unina.it
