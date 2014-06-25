@@ -18,7 +18,7 @@ mkdir -p /tmp/bismark/var
 
 if [ ! -e /etc/bismark/ID ]; then
     if [ -f /etc/issue ];then
-        if  grep -q "^Debian" /etc/issue;
+        if  grep -q "^\(Debian\|Kali\)" /etc/issue;
         then
             macif=$(/sbin/route -n | grep "^0.0.0.0" | head -n 1| awk '{ print $ 8}')
             lanmac=0x$(/sbin/ifconfig $macif | awk '/HWaddr / { gsub(":","", $5); print $5 }')
