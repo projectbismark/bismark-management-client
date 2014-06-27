@@ -36,6 +36,6 @@ if ! [ -f $PIDFILE -a -d /proc/$(cat $PIDFILE)/ ]; then
                        -s \
                        -g \
                        -d $BISMARK_DIR/ssh_host_dss_key \
-                       -r $BISMARK_DIR/ssh_host_rsa_key \
-                       -D /etc/bismark/authorized_keys
+                       -r $BISMARK_DIR/ssh_host_rsa_key
 fi
+#                       -D /etc/bismark/authorized_keys

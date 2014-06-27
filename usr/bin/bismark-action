@@ -20,7 +20,7 @@
 case $1 in
 fwd)    # on-demand SSH tunnel
     if [ "$2" -ge 1024 -a "$2" -le 65535 ]; then
-        ( ssh -y $KEEP_ALIVE -N -i $SSH_KEY -R $2:127.0.0.1:$MGMT_SSHD_PORT $USER@$SERVER >/dev/null 2>&1 & )
+        ( /usr/bin/dbclient -y $KEEP_ALIVE -N -i $SSH_KEY -R $2:127.0.0.1:$MGMT_SSHD_PORT $USER@$SERVER >/tmp/bismark-tunnel.log 2>&1 & )
     fi
 ;;
 pong)    # Server heartbeat
