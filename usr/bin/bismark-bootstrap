@@ -20,10 +20,15 @@ if [ ! -e /etc/bismark/ID ]; then
     if [ -f /etc/issue ];then
         if  grep -q "^\(Debian\|Kali\)" /etc/issue;
         then
-            macif=$(/sbin/route -n | grep "^0.0.0.0" | head -n 1| awk '{ print $ 8}')
-            lanmac=0x$(/sbin/ifconfig $macif | awk '/HWaddr / { gsub(":","", $5); print $5 }')
             mkdir -p /etc/bismark/
-            printf "DL%012X\n" $((lanmac & 0xFDFFFFFFFFFF)) > /etc/bismark/ID
+            # running from vbox ?
+            if [ -c /dev/vboxuser ]; then
+               echo DL$(date +%y%m%d%H)$(awk 'BEGIN {srand(); printf "%04X\n", rand()*65535}') > /etc/bismark/ID
+            else
+               macif=$(/sbin/route -n | grep "^0.0.0.0" | head -n 1| awk '{ print $ 8}')
+               lanmac=0x$(/sbin/ifconfig $macif | awk '/HWaddr / { gsub(":","", $5); print $5 }')
+               printf "DL%012X\n" $((lanmac & 0xFDFFFFFFFFFF)) > /etc/bismark/ID
+            fi
         fi
     else
         if [ -e /lib/ar71xx.sh ]; then
