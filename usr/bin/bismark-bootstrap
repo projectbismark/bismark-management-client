@@ -18,7 +18,7 @@ mkdir -p /tmp/bismark/var
 
 if [ ! -e /etc/bismark/ID ]; then
     if [ -f /etc/issue ];then
-        if  grep -q "^\(Debian\|Kali\)" /etc/issue;
+        if  grep -q "^\(Debian\|Ubuntu\|Raspbian\|Kali\)" /etc/issue;
         then
             mkdir -p /etc/bismark/
             # running from vbox ?
