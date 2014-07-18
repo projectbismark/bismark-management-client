@@ -27,7 +27,13 @@ if [ ! -e /etc/bismark/ID ]; then
             else
                macif=$(/sbin/route -n | grep "^0.0.0.0" | head -n 1| awk '{ print $ 8}')
                lanmac=0x$(/sbin/ifconfig $macif | awk '/HWaddr / { gsub(":","", $5); print $5 }')
-               printf "DL%012X\n" $((lanmac & 0xFDFFFFFFFFFF)) > /etc/bismark/ID
+               ostype=$(cat /etc/issue | cut -c 1-4)
+               case "$ostype" in
+                 Rasp) printf "PI%012X\n" $((lanmac & 0xFDFFFFFFFFFF)) > /etc/bismark/ID
+                       ;;
+                    *) printf "DL%012X\n" $((lanmac & 0xFDFFFFFFFFFF)) > /etc/bismark/ID
+                       ;;
+               esac
             fi
         fi
     else
