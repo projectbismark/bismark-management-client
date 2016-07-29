@@ -15,32 +15,41 @@
 mkdir -p /tmp/bismark/var
 
 # Set the device identifier
+PRE="UN"
+#what is my platform
+if [ -f /etc/issue ];
+then
+   if  grep -q "^\(Debian\|Ubuntu\|Raspbian\|Kali\)" /etc/issue;
+   then 
+     ostype=$(cat /etc/issue | cut -c 1-4)
+     case "$ostype" in
+       Rasp) PRE="PI";;
+       Debi|Ubun|Kali) PRE="DL";;
+     esac
+   fi
+else #no issue file (an old openwrt?)
+  PRE="OW"
+fi
 
-if [ ! -e /etc/bismark/ID ]; then
-    if [ -f /etc/issue ];then
-        if  grep -q "^\(Debian\|Ubuntu\|Raspbian\|Kali\)" /etc/issue;
-        then
-            mkdir -p /etc/bismark/
-            # running from vbox ?
-            if [ -c /dev/vboxuser ]; then
-               echo DL$(date +%y%m%d%H)$(awk 'BEGIN {srand(); printf "%04X\n", rand()*65535}') > /etc/bismark/ID
-            else
-               macif=$(/sbin/route -n | grep "^0.0.0.0" | head -n 1| awk '{ print $ 8}')
-               lanmac=0x$(/sbin/ifconfig $macif | awk '/HWaddr / { gsub(":","", $5); print $5 }')
-               ostype=$(cat /etc/issue | cut -c 1-4)
-               case "$ostype" in
-                 Rasp) printf "PI%012X\n" $((lanmac & 0xFDFFFFFFFFFF)) > /etc/bismark/ID
-                       ;;
-                    *) printf "DL%012X\n" $((lanmac & 0xFDFFFFFFFFFF)) > /etc/bismark/ID
-                       ;;
-               esac
-            fi
-        fi
-    else
+#if there's any mac associated w default gw route, use it
+macif=$(/sbin/route -n | grep "^0.0.0.0" | head -n 1| awk '{ print $ 8}')
+if [ -z $macif ];
+then
+  macif="eth0" #default to eth0
+fi
+
+if [ ! -e /etc/bismark/ID ];
+then
+  case "$PRE" in
+     PI|DL)
+        lanmac=0x$(/sbin/ifconfig $macif | awk '/HWaddr / { gsub(":","", $5); print $5 }')
+        printf "$PRE%012X\n" $((lanmac & 0xFDFFFFFFFFFF)) > /etc/bismark/ID
+     ;;
+     OW)
         if [ -e /lib/ar71xx.sh ]; then
             . /lib/ar71xx.sh
             board=$(ar71xx_board_name)
-            case $board in 
+            case $board in
             wndr3*00*)
                 macif=$LAN_IF
                 ;;
@@ -49,7 +58,7 @@ if [ ! -e /etc/bismark/ID ]; then
                 ;;
             *)
                 macif=$LAN_IF
-            ;; 
+            ;;
             esac
         fi
         lanmac=0x$(ifconfig $macif | awk '/HWaddr / { gsub(":","", $5); print $5 }')
@@ -57,7 +66,16 @@ if [ ! -e /etc/bismark/ID ]; then
         uci set system.@system[0].hostname=$(cat /etc/bismark/ID)
         uci commit system
         cat /etc/bismark/ID > /proc/sys/kernel/hostname
-    fi
+     ;;
+     *)
+        echo UN$(date +%y%m%d%H)$(awk 'BEGIN {srand(); printf "%04X\n", rand()*65535}') > /etc/bismark/ID
+     ;;
+  esac  
+else
+  if ! grep -qE "^(PI|DL|OW|UN)[0-9A-F]{12}" /etc/bismark/ID;
+  then
+     echo $PRE$(date +%y%m%d%H)$(awk 'BEGIN {srand(); printf "%04X\n", rand()*65535}') > /etc/bismark/ID
+  fi
 fi
 
 [ -e /www/index.html -a -e /www/index.htm ] && rm -f /www/index.html
