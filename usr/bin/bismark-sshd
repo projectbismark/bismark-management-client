@@ -20,10 +20,10 @@ if ! [ -s $BISMARK_DIR/ssh_host_dss_key -a \
         fi
     done
 
-    flock /tmp/.switch2jffs
+    #flock /tmp/.switch2jffs
     mkdir -p $BISMARK_DIR
     mv $TMP_DIR/ssh_host_* $BISMARK_DIR
-    flock -u /tmp/.switch2jffs
+    #flock -u /tmp/.switch2jffs
     chown root $BISMARK_DIR
     chmod 0700 $BISMARK_DIR
 fi
