@@ -42,7 +42,7 @@ if [ ! -e /etc/bismark/ID ];
 then
   case "$PRE" in
      PI|DL)
-        lanmac=0x$(/sbin/ifconfig $macif | awk '/HWaddr / { gsub(":","", $5); print $5 }')
+        lanmac=0x$(/sbin/ifconfig $macif | awk '/ether / { gsub(":","", $2); print $2 }')
         printf "$PRE%012X\n" $((lanmac & 0xFDFFFFFFFFFF)) > /etc/bismark/ID
      ;;
      OW)
